@@ -83,12 +83,12 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
     _margin = 20.0f;
     _defaultMotionEffectsEnabled = NO;
 
-    if (@available(iOS 13.0, tvOS 13, *)) {
-       _contentColor = [[UIColor labelColor] colorWithAlphaComponent:0.7f];
-    } else {
+#if ((TARGET_OS_IOS || TARGET_OS_TV) && (__IPHONE_OS_VERSION_MAX_ALLOWED >= 130000))
+        _contentColor = [[UIColor labelColor] colorWithAlphaComponent:0.7f];
+#else
         _contentColor = [UIColor colorWithWhite:0.f alpha:0.7f];
-    }
-
+#endif
+    
     // Transparent background
     self.opaque = NO;
     self.backgroundColor = [UIColor clearColor];
@@ -372,15 +372,13 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
             // Update to indeterminate indicator
             UIActivityIndicatorView *activityIndicator;
             [indicator removeFromSuperview];
-#if !TARGET_OS_MACCATALYST
-            if (@available(iOS 13.0, tvOS 13.0, *)) {
+#if (!TARGET_OS_MACCATALYST && (__IPHONE_OS_VERSION_MAX_ALLOWED >= 130000))
+            activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
+            activityIndicator.color = [UIColor whiteColor];
 #endif
-                activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
-                activityIndicator.color = [UIColor whiteColor];
-#if !TARGET_OS_MACCATALYST
-            } else {
-               activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-            }
+#if (!TARGET_OS_MACCATALYST && (__IPHONE_OS_VERSION_MAX_ALLOWED < 130000))
+            
+            activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
 #endif
             [activityIndicator startAnimating];
             indicator = activityIndicator;
@@ -1058,6 +1056,7 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
 - (instancetype)initWithFrame:(CGRect)frame {
     if ((self = [super initWithFrame:frame])) {
         _style = MBProgressHUDBackgroundStyleBlur;
+        #if (__IPHONE_OS_VERSION_MAX_ALLOWED >= 130000)
         if (@available(iOS 13.0, *)) {
             #if TARGET_OS_TV
             _blurEffectStyle = UIBlurEffectStyleRegular;
@@ -1065,10 +1064,11 @@ static const CGFloat MBDefaultDetailsLabelFontSize = 12.f;
             _blurEffectStyle = UIBlurEffectStyleSystemThickMaterial;
             #endif
             // Leaving the color unassigned yields best results.
-        } else {
+        }
+        #else
             _blurEffectStyle = UIBlurEffectStyleLight;
             _color = [UIColor colorWithWhite:0.8f alpha:0.6f];
-        }
+        #endif
 
         self.clipsToBounds = YES;
 
